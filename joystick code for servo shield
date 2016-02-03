@@ -1,0 +1,107 @@
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+
+//2 inches per secondn DC motor speed 
+
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+
+const int towerproMin = 100; //calibrated min for the tower pro servos
+const int towerproMax = 600;//calibrated max for the tower pro servos
+const int kpowMin = 10;//calibrated min for the kpow servos
+const int kpowMax = 1000;//calibrated max for the kpowo servos
+
+int clawVal; // value that is mapped to be written to claw servo
+int wristVal;// value that is mapped to be written to wrist servo
+int wristRotateVal;// value that is mapped to be written to wristRotate servo
+int elbowVal;// value that is mapped to be written to elbow servo
+int shoulderVal;// value that is mapped to be written to shoulder servo
+int baseVal;// value that is mapped to be written to base servo
+
+int clawPin = 0;//pin of shield for claw servo
+int wristPin = 1;//pin of shield for wrist servo
+int wristRotatePin = 2;//pin of shield for wrist rotate servo
+int elbowPin = 3;//pin of shield for elbow servo
+int shoulderPin = 4;//pin of shield for shoulder servo
+int basePin = 5;//pin of shield for base servo
+
+int clawButtonPin = 2; //digital pin for reading claw button
+
+int xPin2 = 1;//analog pin for reading wrist potentiometer
+int yPin1 = 3;//analog pin for reading elbow potentiometer
+int yPin2 = 4;//analog pin for reading shoulder potentiometer
+int xPin1 = 5;//analog pin for reading base potentiometer
+
+void setup() {
+  Serial.begin(9600); // begins serial communication
+  pinMode(clawButtonPin,INPUT);//sets clawButton pin to input
+  pwm.begin();//starts the servo shield
+  pwm.setPWMFreq(200);  // update rate, I increased it to increase idle torque
+  pinMode(xPin1,INPUT);
+  yield(); 
+}
+void setServoPulse(uint8_t n, double pulse) {
+  double pulselength;
+  
+  pulselength = 1000000;   // 1,000,000 us per second
+  pulselength /= 60;   // 60 Hz
+//  Serial.print(pulselength); Serial.println(" us per period"); 
+  pulselength /= 4096;  // 12 bits of resolution
+//  Serial.print(pulselength); Serial.println(" us per bit"); 
+  pulse *= 1000;
+  pulse /= pulselength;
+//  Serial.println(pulse);
+  pwm.setPWM(n, 0, pulse);
+}
+void loop() {
+
+  int clawButtonVal = digitalRead(clawButtonPin);//reads clawbutton
+  if (clawButtonVal==1){
+    clawVal = map(180, 0, 180, towerproMin, towerproMax);     // when button is held, claw cloases
+    pwm.setPWM(clawPin, 0, clawVal);            // sets the servo position according to the scaled value    
+  } else {
+    clawVal = map(0, 0, 180, towerproMin, towerproMax);     // when button is releases, claw opens
+    pwm.setPWM(clawPin, 0, clawVal);            // sets the servo position according to the scaled value        
+  }
+  
+  wristVal = analogRead(xPin2);            // reads the value of the wrist potentiometer (value between 0 and 1023)
+  wristVal = map(wristVal, 0, 1023, towerproMin, towerproMax);     // scale it to use it with the servo (value between 0 and 180)
+  pwm.setPWM(wristPin, 0, wristVal);            // sets the servo position according to the scaled value
+//  delay(15);// waits for the servo to get there
+
+//  wristRotateVal = analogRead(wristRotatePot);            // reads the value of the wrist potentiometer (value between 0 and 1023)
+//  wristRotateVal = map(wristRotateVal, 0, 1023, towerproMin, towerproMax);     // scale it to use it with the servo (value between 0 and 180)
+//  pwm.setPWM(wristRotatePin, 0, wristRotateVal);            // sets the servo position according to the scaled value
+////  delay(15);// waits for the servo to get there  
+
+elbowVal = analogRead(yPin1);            // reads the value of the wrist potentiometer (value between 0 and 1023)
+  elbowVal = map(elbowVal, 0, 1023, towerproMin, towerproMax);     // scale it to use it with the servo (value between 0 and 180)
+  if (analogRead(yPin1) > 525){
+    if (elbowVal < towerproMax){
+      elbowVal += (analogRead(yPin1)/100);
+    }
+  } else if (analogRead(yPin1) < 500){
+    if (elbowVal > towerproMin)  elbowVal -= (1023-(analogRead(yPin1))/100);
+  }
+  pwm.setPWM(elbowPin, 0, elbowVal);            // sets the servo position according to the scaled value
+//  delay(15);// waits for the servo to get there   
+
+ 
+  shoulderVal = analogRead(yPin1);            // reads the value of the wrist potentiometer (value between 0 and 1023)
+  Serial.println(shoulderVal);
+  shoulderVal = map(shoulderVal, 0, 1023, kpowMin, kpowMax);     // scale it to use it with the servo (value between 0 and 180)
+  if (analogRead(yPin1) > 525){
+    if (shoulderVal < kpowMax){
+      shoulderVal += (analogRead(yPin1)/100);
+    }
+  } else if (analogRead(yPin1) < 500){
+    if (shoulderVal > kpowMin)  shoulderVal -= (1023-(analogRead(yPin1))/100);
+  }
+  pwm.setPWM(shoulderPin, 0, shoulderVal);            // sets the servo position according to the scaled value
+//  delay(15);// waits for the servo to get there   
+
+  baseVal = analogRead(xPin1);            // reads the value of the wrist potentiometer (value between 0 and 1023)
+  Serial.println(baseVal);
+  baseVal = map(baseVal, 0, 1023, 1000, 2000);     // scale it to use it with the servo (value between 0 and 180)
+  setServoPulse(basePin, (baseVal/1000));            // sets the servo position according to the scaled value
+//  delay(15);// waits for the servo to get there   
+}
