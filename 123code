@@ -48,9 +48,9 @@ void loop() // Loops repeatedly
   //BASE SERVO CONTROL
   xVal1 = analogRead(xPin1);                   // reads the value of the first x axis potentiometer (value between 0 and 1023) 
   xVal1 = map(xVal1, 0, 1023, 1000, 2000);         // scales it to use it with the servo (0 to 180 degrees) 
-  if (xVal1 > 1200){
+  if (xVal1 > 1200 && basePos < 2000){
   	basePos += 10;
-  } else if (xVal1 < 800){
+  } else if (xVal1 < 800 && basePos > 1000) {
   	basePos -= 10;
   }
   baseMotor.writeMicroseconds(basePos);                     // writes that value to servo driver
@@ -58,19 +58,20 @@ void loop() // Loops repeatedly
   //ARM MOTORS CONTROL
   yVal1 = analogRead(yPin1);                   // reads the value of the first y axis potentiometer (value between 0 and 1023) 
   yVal1 = map(yVal1, 0, 1023, 0, 180);     // scales it to use it with the PWM motor (pulse length between 1000 and 2000) 
-  if (yVal1 > 100){
+  if (yVal1 > 100 && armPos < 180){
   	armPos += 2;
-  } else if (yVal1 < 80){
+  } else if (yVal1 < 80 && armPos > 0){
   	armPos -= 2;
   }
+  Serial.println(armPos);
   armServo.write(armPos);          // writes that value to PWM driver
 
   //ELBOW MOTOR CONTROL
   yVal2 = analogRead(yPin2);                   // reads the value of the second y axis potentiometer (value between 0 and 1023) 
   yVal2 = map(yVal2, 0, 1023, 0, 180);     // scales it to use it with the PWM motor (pulse length between 1000 and 2000) 
-  if (yVal2 > 100){
+  if (yVal2 > 100&& elbowPos < 180){
   	elbowPos += 2;
-  } else if (yVal2 < 80){
+  } else if (yVal2 < 80 && elbowPos > 0){
   	elbowPos -= 2;
   }
   elbowServo.write(elbowPos);          // writes that value to PWM driver
@@ -78,9 +79,9 @@ void loop() // Loops repeatedly
   //WRIST SERVO CONTROL
    xVal2 = analogRead(xPin2);                   // reads the value of the second y axis potentiometer (value between 0 and 1023) 
   xVal2 = map(xVal2, 0, 1023, 0, 180);     // scales it to use it with the PWM motor (pulse length between 1000 and 2000) 
-  if (xVal2 > 100){
+  if (xVal2 > 100 && wristPos < 180){
   	wristPos += 2;
-  } else if (xVal2 < 80){
+  } else if (xVal2 < 80 && wristPos > 0){
   	wristPos -= 2;
   }
   wristServo.write(wristPos);          // writes that value to PWM driver
