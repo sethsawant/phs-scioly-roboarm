@@ -23,7 +23,11 @@ int wristVal = 90; // varialbe to hold the position of the wrist servo
 boolean clawOpen = true; // boolean to hold the state of the claw, open or closed
 int initially = 0;
 int previous = 0;
- 
+int basePos = 1500;
+int armPos = 90;
+int elbowPos = 90;
+int wristPos = 90;
+
 void setup() 
 { 
   Serial.begin(9600);            // initializes serial communication over usb to IDE
@@ -44,27 +48,47 @@ void loop() // Loops repeatedly
   //BASE SERVO CONTROL
   xVal1 = analogRead(xPin1);                   // reads the value of the first x axis potentiometer (value between 0 and 1023) 
   xVal1 = map(xVal1, 0, 1023, 1000, 2000);         // scales it to use it with the servo (0 to 180 degrees) 
-  baseMotor.writeMicroseconds(xVal1);                     // writes that value to servo driver
+  if (xVal1 > 1200){
+  	basePos += 10;
+  } else if (xVal1 < 800){
+  	basePos -= 10;
+  }
+  baseMotor.writeMicroseconds(basePos);                     // writes that value to servo driver
   
   //ARM MOTORS CONTROL
   yVal1 = analogRead(yPin1);                   // reads the value of the first y axis potentiometer (value between 0 and 1023) 
   yVal1 = map(yVal1, 0, 1023, 0, 180);     // scales it to use it with the PWM motor (pulse length between 1000 and 2000) 
-  armServo.write(yVal1);          // writes that value to PWM driver
+  if (yVal1 > 100){
+  	armPos += 2;
+  } else if (yVal1 < 80){
+  	armPos -= 2;
+  }
+  armServo.write(armPos);          // writes that value to PWM driver
 
   //ELBOW MOTOR CONTROL
   yVal2 = analogRead(yPin2);                   // reads the value of the second y axis potentiometer (value between 0 and 1023) 
   yVal2 = map(yVal2, 0, 1023, 0, 180);     // scales it to use it with the PWM motor (pulse length between 1000 and 2000) 
-  elbowServo.write(yVal1);          // writes that value to PWM driver
+  if (yVal2 > 100){
+  	elbowPos += 2;
+  } else if (yVal2 < 80){
+  	elbowPos -= 2;
+  }
+  elbowServo.write(elbowPos);          // writes that value to PWM driver
   
   //WRIST SERVO CONTROL
    xVal2 = analogRead(xPin2);                   // reads the value of the second y axis potentiometer (value between 0 and 1023) 
   xVal2 = map(xVal2, 0, 1023, 0, 180);     // scales it to use it with the PWM motor (pulse length between 1000 and 2000) 
-  wristServo.write(xVal2);          // writes that value to PWM driver
+  if (xVal2 > 100){
+  	wristPos += 2;
+  } else if (xVal2 < 80){
+  	wristPos -= 2;
+  }
+  wristServo.write(wristPos);          // writes that value to PWM driver
   //CLAW SERVO CONTROL 
 //  while ((digitalRead(clawbuttonPin) == HIGH)) {
 //    initially ++;
 //    if ((clawServo.read() >= 30) && (initially - previous >= 1800)){
- //     clawServo.write(0);
+//      clawServo.write(0);
 //      previous = initially;
 //    }
 //    else if (clawServo.read() <= 30 && (initially - previous >= 1800)){
@@ -72,4 +96,5 @@ void loop() // Loops repeatedly
 //      previous = initially;
 //    }
 //  }
+  
 } 
