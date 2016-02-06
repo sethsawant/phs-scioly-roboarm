@@ -1,0 +1,73 @@
+#include <Servo.h>
+
+
+Servo baseMotor;  // create servo object to control base motor 
+Servo elbowServo; // creates servo object for rotation servo
+Servo wristServo; // creates a servo object for wrist servo
+Servo armServo1; // creates a servo object for first arm motor
+Servo armServo2;
+Servo clawServo; // creates a servo object for claw servo
+
+const int clawbuttonPin = 2;     // the number of the pushbutton pin
+const int xPin1 = 0;  // analog pin used for x axis of first joystick
+const int yPin1 = 1;  // analog pin used for y axis of first joystick
+const int xPin2 = 2;  // analog pin used for x axis of second joystick
+const int yPin2 = 3;  // analog pin used for y axis of second joystick
+int xVal1;      // variable to hold the value from the analog x pin for the first joysick
+int yVal1;      // variable to hold the value from the analog y pin for the first joysick
+int xVal2;      // variable to hold the value from the analog x pin for the second joysick
+int yVal2;      // variable to hold the value from the analog y pin for the second joysick
+int clawbuttonState = 0;         // variable for reading the pushbutton status
+int wristPos = 90;
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);            // initializes serial communication over usb to IDE
+  // initialize the pushbutton pin as an input:
+  pinMode(clawbuttonPin, INPUT);
+  clawServo.attach(8);           // attaches the claw servo on pin 8 to the servo object 
+  baseMotor.attach(9);           // attaches the base servo on pin 9 to the servo object 
+  armServo.attach(10);          // attaches the first arm motor on pin 10 to the servo object 
+  armMotor2.attach(11);          // attaches the second arm motor on pin 11 to the servo object 
+  wristServo.attach(12);         // attaches the wrist servo on pin 12 to the servo object
+  elbowServo.attach(13);  
+}
+
+void loop() {
+
+ 
+  //BASE SERVO CONTROL
+  xVal1 = analogRead(xPin1);                   // reads the value of the first x axis potentiometer (value between 0 and 1023) 
+  xVal1 = map(xVal1, 0, 1023, 1000, 2000);         // scales it to use it with the servo (0 to 180 degrees) 
+  baseMotor.writeMicroseconds(xVal1);                     // writes that value to servo driver
+  
+  //ARM MOTORS CONTROL
+  yVal1 = analogRead(yPin1);                   // reads the value of the first y axis potentiometer (value between 0 and 1023) 
+  yVal1 = map(yVal1, 0, 1023, 1000, 2000);     // scales it to use it with the PWM motor (pulse length between 1000 and 2000) 
+  armServo.write(yVal1);          // writes that value to PWM driver
+
+  //ELBOW MOTOR CONTROL
+  yVal2 = analogRead(yPin2);                   // reads the value of the second y axis potentiometer (value between 0 and 1023) 
+  yVal2 = map(yVal2, 0, 1023, 1000, 20000);     // scales it to use it with the PWM motor (pulse length between 1000 and 2000) 
+  elbowServo.write(yVal2);          // writes that value to PWM driver
+
+
+  xVal2 = analogRead(xPin2);                   // reads the value of the second y axis potentiometer (value between 0 and 1023) 
+  xVal2 = map(xVal2, 0, 1023, 0, 180);     // scales it to use it with the PWM motor (pulse length between 1000 and 2000) 
+  if (xVal2 > 100 && wristPos < 180){
+    wristPos += 2;
+  } else if (xVal2 < 80 && wristPos > 0){
+    wristPos -= 2;
+  }
+  wristServo.write(wristPos);          // writes that value to PWM driver
+  
+ clawbuttonState = digitalRead(clawbuttonPin);
+
+  // check if the pushbutton is pressed.
+  // if it is, the buttonState is HIGH:
+  if clawbuttonState == HIGH) {
+     clawServo.write(180);
+  } else {
+     clawServo.write(00);
+  }
+
+}
